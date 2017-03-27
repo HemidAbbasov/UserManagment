@@ -1,0 +1,90 @@
+<#@ template language="C#" debug="True" hostSpecific="True"                        #>
+<#@ output extension=".generated.cs" encoding="utf-8"                              #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\LinqToDB.SQLite.Tools.ttinclude" #>
+<#@ include file="$(ProjectDir)LinqToDB.Templates\PluralizationService.ttinclude"  #>
+<#
+	/*
+		Список изменений(дополнений):
+            1. Код, который выполненяется до GenerateModel()
+            2. Добавлен метод CamelizeString()
+            3. Добавлен метод MyGetLastWord() в LinqToDB.Templates\PluralizationService.ttinclude
+            4. Добавлены { "response",     "responses"    }, { "history",      "history"      } в LinqToDB.Templates\PluralizationService.ttinclude
+            5. Опциям присвоены значения.
+	*/
+
+	NamespaceName            = "UserManagmentLib.DataModels"; // Namespace of the generated classes.
+    DataContextName          = "FirstDB";                       // DataContext class name. If null - database name + "DB".
+	GenerateConstructors     = true;                           // Enforce generating DataContext constructors.
+	DefaultConfiguration     = null;                           // Defines default configuration(connectionString) for default DataContext constructor.
+	
+	GenerateDatabaseName                = false; // Если true, то в аттрибуте таблицы "Table", будет указано свойство Database
+                                                 // [Table(Database="TestDB", Name="request_statuses")]
+	IncludeDefaultSchema                = false; // Для SQLite не имеет значения, т.к. в нем нет понятия схемы. 
+                                                 // Для других СУБД опция означает, генерировать или нет классы для схемы, от чьего имени идет подключение.
+    GenerateDbTypes                     = true;  // Если true, то в аттрибуте поля "Column" будет указано свойство DbType
+                                                 // [Column("request_id", DbType="integer", DataType=DataType.Int64), NotNull]
+	GenerateDataTypes                   = true;  // Если true, то в аттрибуте поля "Column" будут указаны свойства DataType/Length/Precision/Scale (если они не перекрыты нижеследующими опциями).
+                                                 // [Column("request_id", DbType="integer", DataType=DataType.Int64, Length=8, Precision=19, Scale=0), NotNull]
+	GenerateLengthProperty              = false; // Если true, то в аттрибуте поля "Column" будет указано свойство Length
+                                                 // [Column("request_id", DbType="integer", DataType=DataType.Int64,  Length=8), NotNull]"
+	GeneratePrecisionProperty           = false; // Если true, то в аттрибуте поля "Column" будет указано свойство Precision
+                                                 // "[Column("request_id", DbType="integer", DataType=DataType.Int64, Length=8, Precision=19), NotNull]"
+	GenerateScaleProperty               = false; // Если true, то в аттрибуте поля "Column" будет указано свойство Scale
+                                                 // [Column("request_id", DbType="integer", DataType=DataType.Int64, Length=8, Precision=19, Scale=0), NotNull]
+    IsCompactColumns                    = true;  // Если true, то поля генерируются в компактном виде (аттрибут и поле на одной строке):
+                                                 // [Column("request_id",  DbType="integer", DataType=DataType.Int64), NotNull] public long     RequestId  { get; set; } // integer
+	
+    PluralizeClassNames                 = false; // Если true, то преобразует во множест.число имена классов таблиц.
+	SingularizeClassNames               = true;  // Если true, то преобразует в единст.число имена классов таблиц.
+	PluralizeDataContextPropertyNames   = true;  // Если true, то преобразует во множест.число имена таблиц (свойства DataContext-а).
+	SingularizeDataContextPropertyNames = false; // Если true, то преобразует в единст.число имена таблиц (свойства DataContext-а).
+	
+    
+    GenerateSchemaAsType                = false;    // Для SQLite не имеет значения, т.к. в нем нет понятия схемы. 
+                                                    // Для других СУБД опция означает, генерировать или нет классы для схем.
+	SchemaNameSuffix                    = "";       // Для SQLite не имеет значения, т.к. в нем нет понятия схемы.
+                                                    // Для других СУБД указывается суффикс к имени класса схемы.
+	SchemaDataContextTypeName           = "Schema"; // Для SQLite не имеет значения, т.к. в нем нет понятия схемы.
+                                                    // Для других СУБД указывается класс-родитель для классов схем.
+	
+
+
+	LoadSQLiteMetadata(@"X:\PROJECTS\Examples\UserManagment\DataBase", "first_db.sqlite");
+	//LoadSQLiteMetadata("SQLite");
+
+    
+	foreach (var t in Tables.Values)
+    {
+        t.TypeName = CamelizeString(t.TypeName);
+        t.DataContextPropertyName = CamelizeString(t.DataContextPropertyName);
+        foreach (var c in t.Columns.Values)
+        {
+            c.MemberName = CamelizeString(c.MemberName);
+        }
+
+        foreach (var fk in t.ForeignKeys.Values)
+        {
+            fk.MemberName = fk.AssociationType == AssociationType.OneToMany 
+                                ? fk.OtherTable.DataContextPropertyName 
+                                : Pluralization.ToSingular(fk.OtherTable.DataContextPropertyName);
+            fk.MemberName = CamelizeString(fk.MemberName);
+        }
+    }
+    
+	GenerateModel();
+#>
+<#+ 
+// Метод, приводящий строку вида "last_status_date" к "LastStatusDate"
+static string CamelizeString(string input)
+{
+    if ( string.IsNullOrWhiteSpace(input) )
+        return string.Empty;
+
+    var words = input.Split('_');
+
+    return words.Where(word => !string.IsNullOrWhiteSpace(word))
+                .Aggregate(string.Empty, 
+                           (current, word) => String.Format("{0}{1}{2}", current, char.ToUpper(char.ToUpper(word[0])), word.Substring(1))
+        );
+}
+#>
