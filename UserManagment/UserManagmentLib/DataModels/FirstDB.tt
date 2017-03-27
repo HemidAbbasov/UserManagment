@@ -49,7 +49,7 @@
 	
 
 
-	LoadSQLiteMetadata(@"X:\PROJECTS\Examples\UserManagment\DataBase", "first_db.sqlite");
+	LoadSQLiteMetadata(@"X:\PROJECTS\Examples\UserManagment_v2\DataBase", "first_db.sqlite");
 	//LoadSQLiteMetadata("SQLite");
 
     

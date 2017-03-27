@@ -6,7 +6,7 @@
 CREATE TABLE roles (
    id   INTEGER           NOT NULL
                           PRIMARY KEY AUTOINCREMENT
- , name VARCHAR2(50)       NOT NULL
+ , name TEXT              NOT NULL
 );
 
 ----------------------
@@ -17,17 +17,17 @@ CREATE TABLE roles (
 CREATE TABLE users (
    id             INTEGER            NOT NULL
                                      PRIMARY KEY AUTOINCREMENT
- , user_name      VARCHAR2(20)       NOT NULL
- , surname        VARCHAR2(50)       NOT NULL
- , firstname      VARCHAR2(50)       NOT NULL
- , patronymic     VARCHAR2(50)       
- , email          VARCHAR2(50)       NOT NULL
+ , user_name      VARCHAR            NOT NULL
+ , surname        VARCHAR            NOT NULL
+ , firstname      VARCHAR            NOT NULL
+ , patronymic     VARCHAR
+ , email          VARCHAR            NOT NULL
  , birth_date     DATETIME2  
- , sex            CHAR(1)       
- , mobile_number  VARCHAR2(17)       NOT NULL
+ , sex            CHAR
+ , mobile_number  VARCHAR            NOT NULL
  , role_id        INTEGER            NOT NULL
- , deleted        INTEGER(1)         NOT NULL DEFAULT 0
- , is_active      INTEGER(1)         NOT NULL DEFAULT 0
+ , deleted        TINYINT            NOT NULL DEFAULT 0
+ , is_active      TINYINT            NOT NULL DEFAULT 0
  , CONSTRAINT fk_users_roles FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 
