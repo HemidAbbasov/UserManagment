@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 
+using LinqToDB;
+
 using NUnit.Framework;
 
 using UserManagmentLib.DataModels;
@@ -30,6 +32,15 @@ namespace UserManagmentTests
                             where r.Id == 1
                             select u;
                 GetResult(users);
+            }
+        }
+
+        [Test]
+        public void InsertNewRole()
+        {
+            using ( var db = new FirstDB() )
+            {
+                db.Roles.Insert(() => new Role {Name = "TEST"});
             }
         }
     }
