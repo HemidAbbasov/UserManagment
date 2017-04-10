@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 using LinqToDB;
 
@@ -41,6 +42,16 @@ namespace UserManagmentTests
             using ( var db = new FirstDB() )
             {
                 db.Roles.Insert(() => new Role {Name = "TEST"});
+            }
+        }
+
+        [Test]
+        public void AnyRole()
+        {
+            using ( var db = new FirstDB() )
+            {
+                var exists = db.Roles.Any(r => r.Name == "ADMN");
+                Console.WriteLine(exists);
             }
         }
     }

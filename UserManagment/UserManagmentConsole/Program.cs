@@ -147,13 +147,27 @@ namespace UserManagmentConsole
 
         private static bool ValidateRole(string roleName)
         {
+            bool isOk;
+
             if ( string.IsNullOrWhiteSpace(roleName) )
             {
                 DisplayFieldMustNotNull("Имя роли");
-                return false;
+                isOk = false;
+            }
+            else
+            {
+                // Проверка по таблице на уникальность
+                using (var db = new FirstDB())
+                {
+                    isOk = !db.Roles.Any(r => r.Name == roleName);
+                    if ( !isOk )
+                    {
+                        DisplayFieldMustUnique("Имя роли");
+                    }
+                }
             }
 
-            return true;
+            return isOk;
         }
 
         private static void InsertUser()
@@ -237,6 +251,10 @@ namespace UserManagmentConsole
                 DisplayFieldMustNotNull(fieldStr);
                 isOk = false;
             }
+            else
+            {
+                // Добавить проверку на уникальность
+            }
 
             // Проверка фамилии (surname)
             if ( string.IsNullOrWhiteSpace(surname) )
@@ -284,7 +302,7 @@ namespace UserManagmentConsole
             }
             else
             {
-                if ( !( sex == "M"  |  sex == "F" ) )
+                if ( !( sex == "M" | sex == "F" ) )
                 {
                     fieldStr = "Пол";
                     DisplayFieldMustEqualOneOfThis(fieldStr, "M", "F");
@@ -307,6 +325,12 @@ namespace UserManagmentConsole
                 DisplayFieldMustNotNull(fieldStr);
                 isOk = false;
             }
+            else
+            {
+                // Проверка на число
+                // Проверка на существование роли с таким ID
+            }
+
             return isOk;
         }
 
@@ -328,6 +352,13 @@ namespace UserManagmentConsole
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Поле '{0}' имеет неправильный формат", fieldStr);
+            Console.ResetColor();
+        }
+
+        private static void DisplayFieldMustUnique(string fieldStr)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Нарушение уникальности по полю '{0}'", fieldStr);
             Console.ResetColor();
         }
     }
